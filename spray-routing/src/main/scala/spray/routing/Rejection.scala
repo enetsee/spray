@@ -141,6 +141,14 @@ case class AuthenticationRequiredRejection(scheme: String, realm: String, params
 case class MissingCookieRejection(cookieName: String) extends Rejection
 
 /**
+ * Rejection created by the `sessionCookie` directive.
+ * Signals that the request was rejected because a distinguished session cookie was not found.
+ */
+case object MissingSessionCookieRejection extends Rejection
+
+
+
+/**
  * Rejection created by the `validation` directive.
  */
 case class ValidationRejection(message: String, cause: Option[Throwable] = None) extends Rejection

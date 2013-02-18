@@ -24,6 +24,7 @@ trait Directives extends RouteConcatenation
   with BasicDirectives
   with ChunkingDirectives
   with CookieDirectives
+  with SessionCookieDirectives
   with DebuggingDirectives
   with EncodingDirectives
   with ExecutionDirectives
