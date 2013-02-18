@@ -6,6 +6,7 @@ import spray.util._
 import spray.util.crypto._
 import spray.http._
 import HttpHeaders._
+import com.typesafe.config.ConfigFactory
 
 case class SessionCookie(
   data: Map[String, String] = Map.empty[String, String],
@@ -36,9 +37,10 @@ trait SessionCookieDirectives {
   import RespondWithDirectives._
   import CookieDirectives._
 
+  import SessionCookieDirectives._
   
   def sessionCookie: Directive[SessionCookie :: HNil] = headerValue {
-    case Cookie(cookies) => cookies.find(_.name ==  ConfigUtils.referenceConfig.getString("session-cookie-name")) map { fromCookie }
+    case Cookie(cookies) => cookies.find(_.name ==  sessionName) map { fromCookie }
     case _ => None
   } | reject(MissingSessionCookieRejection)
 
@@ -50,13 +52,13 @@ trait SessionCookieDirectives {
   }
 
   def deleteSession(domain: String = "", path: String = ""): Directive0 =
-    deleteCookie(ConfigUtils.referenceConfig.getString("session-cookie-name"), domain, path)
+    deleteCookie(sessionName, domain, path)
 
   implicit def fromCookie(cookie: HttpCookie): SessionCookie =
     SessionCookie(decode(cookie.content), cookie.expires, cookie.maxAge, cookie.domain, cookie.path, cookie.secure, cookie.httpOnly, cookie.extension)
 
   implicit def toCookie(session: SessionCookie): HttpCookie =
-    HttpCookie(ConfigUtils.referenceConfig.getString("session-cookie-name"), encode(session.data), session.expires, session.maxAge, session.domain, session.path, session.secure, session.httpOnly, session.extension)
+    HttpCookie(sessionName, encode(session.data), session.expires, session.maxAge, session.domain, session.path, session.secure, session.httpOnly, session.extension)
 
   private def encode(data: Map[String, String]): String = {
     val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"), "UTF-8")
@@ -90,4 +92,9 @@ trait SessionCookieDirectives {
     }
   }
 
+}
+
+
+object SessionCookieDirectives{	
+  val sessionName =  ConfigFactory.load().getString("session.cookie-name")
 }
